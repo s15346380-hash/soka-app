@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Monte Carlo Soccer Engine", page_icon="⚽", layout="wide"
 )
 
-# Custom CSS kufanya mwonekano ufanane na kadi za kwenye picha
+# Custom CSS
 st.markdown(
     """
     <style>
@@ -40,25 +40,12 @@ st.markdown(
         font-weight: bold;
         margin-bottom: 5px;
     }
-    .vip-card {
-        background-color: #0f172a;
-        border: 2px solid #3b82f6;
-        border-radius: 10px;
-        padding: 15px;
-        color: white;
-    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# Header Bar
-st.markdown(
-    "<h2 style='text-align: center; color: #f59e0b;'>⚽ SPORTIVO TRINIDENSE VS CLUB GUARANI</h2>",
-    unsafe_allow_html=True,
-)
-
-# Sidebar kwa ajili ya Mipangilio
+# Sidebar
 st.sidebar.header("⚙️ Mipangilio ya Engine")
 home_team = st.sidebar.text_input("Timu ya Nyumbani", "Sportivo Trinidense")
 away_team = st.sidebar.text_input("Timu ya Ugenini", "Club Guarani")
@@ -92,7 +79,12 @@ home_prob = (home_wins / simulations) * 100
 draw_prob = (draws / simulations) * 100
 away_prob = (away_wins / simulations) * 100
 
-# Top 1 & Top 2 Layouts (Kama picha)
+st.markdown(
+    f"<h2 style='text-align: center; color: #f59e0b;'>⚽ {home_team.upper()} VS {away_team.upper()}</h2>",
+    unsafe_allow_html=True,
+)
+
+# Top Layouts
 c1, c2 = st.columns(2)
 
 with c1:
@@ -110,7 +102,6 @@ with c2:
         unsafe_allow_html=True,
     )
 
-    # Kuhesabu Correct Score Frequencies
     scores = {}
     for h, a in zip(home_goals, away_goals):
         score_str = f"{h}-{a}"
@@ -123,9 +114,7 @@ with c2:
     sc_col1, sc_col2 = st.columns(2)
     for idx, (score_val, count) in enumerate(sorted_scores[:6]):
         prob_val = (count / simulations) * 100
-        box_class = (
-            "score-box" if idx % 2 == 0 else "score-box-yellow"
-        )  # Rangi tofauti
+        box_class = "score-box" if idx % 2 == 0 else "score-box-yellow"
         target_col = sc_col1 if idx < 3 else sc_col2
         with target_col:
             st.markdown(
@@ -135,7 +124,7 @@ with c2:
 
 st.divider()
 
-# Bottom Layout: 5x5 Matrix & VIP Options
+# Bottom Layout
 col_matrix, col_vip = st.columns([1, 1])
 
 with col_matrix:
@@ -144,22 +133,25 @@ with col_matrix:
         unsafe_allow_html=True,
     )
 
-    # Kutengeneza Matrix ya 0 hadi 4
+    # Matrix ya 0 hadi 4
     matrix_data = np.zeros((5, 5))
     for h in range(5):
         for a in range(5):
             count = np.sum((home_goals == h) & (away_goals == a))
-            matrix_data[h, a] = (count / simulations) * 100
+            matrix_data[h, a] = round((count / simulations) * 100, 1)
 
     matrix_df = pd.DataFrame(
         matrix_data,
-        columns=["0", "1", "2", "3", "4"],
-        index=["0", "1", "2", "3", "4"],
+        columns=[
+            f"{away_team} {i}" if i == 0 else f"{i}" for i in range(5)
+        ],
+        index=[
+            f"{home_team} {i}" if i == 0 else f"{i}" for i in range(5)
+        ],
     )
-    st.dataframe(
-        matrix_df.style.background_gradient(cmap="Reds").format("{:.1f}%"),
-        use_container_width=True,
-    )
+
+    # Njia iliyorekebishwa isiyohitaji Jinja2/Matplotlib
+    st.dataframe(matrix_df, use_container_width=True)
 
 with col_vip:
     st.markdown(
@@ -187,7 +179,6 @@ with col_vip:
         int(max(home_prob, away_prob, draw_prob)), text="VIP Confidence Level"
     )
 
-# Footer Info
 st.caption(
     f"Data Engine: Monte Carlo Simulation ({simulations:,} runs) | Powered by Python Streamlit"
 )
