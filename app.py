@@ -40,6 +40,13 @@ st.markdown(
         font-weight: bold;
         margin-bottom: 5px;
     }
+    .ou-box {
+        background-color: #1e293b;
+        border-left: 4px solid #3b82f6;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 6px;
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -69,6 +76,7 @@ simulations = st.sidebar.slider(
 np.random.seed(42)
 home_goals = np.random.poisson(home_xg, simulations)
 away_goals = np.random.poisson(away_xg, simulations)
+total_goals = home_goals + away_goals
 
 # Kuhesabu Matokeo Makuu
 home_wins = np.sum(home_goals > away_goals)
@@ -124,7 +132,39 @@ with c2:
 
 st.divider()
 
-# Bottom Layout
+# Over / Under Section
+st.markdown(
+    "<div class='card-title'>⚽ UCHAMBUZI WA GOALS (OVER / UNDER)</div>",
+    unsafe_allow_html=True,
+)
+
+o15 = (np.sum(total_goals > 1.5) / simulations) * 100
+u15 = 100 - o15
+o25 = (np.sum(total_goals > 2.5) / simulations) * 100
+u25 = 100 - o25
+o35 = (np.sum(total_goals > 3.5) / simulations) * 100
+u35 = 100 - o35
+
+ou_col1, ou_col2, ou_col3 = st.columns(3)
+with ou_col1:
+    st.markdown(
+        f"<div class='ou-box'><b>Over 1.5:</b> {o15:.1f}%<br><b>Under 1.5:</b> {u15:.1f}%</div>",
+        unsafe_allow_html=True,
+    )
+with ou_col2:
+    st.markdown(
+        f"<div class='ou-box'><b>Over 2.5:</b> {o25:.1f}%<br><b>Under 2.5:</b> {u25:.1f}%</div>",
+        unsafe_allow_html=True,
+    )
+with ou_col3:
+    st.markdown(
+        f"<div class='ou-box'><b>Over 3.5:</b> {o35:.1f}%<br><b>Under 3.5:</b> {u35:.1f}%</div>",
+        unsafe_allow_html=True,
+    )
+
+st.divider()
+
+# Bottom Layout: Matrix & VIP Options
 col_matrix, col_vip = st.columns([1, 1])
 
 with col_matrix:
@@ -133,7 +173,6 @@ with col_matrix:
         unsafe_allow_html=True,
     )
 
-    # Matrix ya 0 hadi 4
     matrix_data = np.zeros((5, 5))
     for h in range(5):
         for a in range(5):
@@ -150,7 +189,6 @@ with col_matrix:
         ],
     )
 
-    # Njia iliyorekebishwa isiyohitaji Jinja2/Matplotlib
     st.dataframe(matrix_df, use_container_width=True)
 
 with col_vip:
@@ -159,18 +197,18 @@ with col_vip:
         unsafe_allow_html=True,
     )
 
-    btts_yes = np.sum((home_goals > 0) & (away_goals > 0)) / simulations * 100
-    over25 = np.sum((home_goals + away_goals) > 2.5) / simulations * 100
-
+    btts_yes = (
+        np.sum((home_goals > 0) & (away_goals > 0)) / simulations
+    ) * 100
     best_score = sorted_scores[0][0]
 
     st.write(
         f"🟢 **Safe Bet:** {'Away or Draw' if away_prob > home_prob else 'Home or Draw'}"
     )
     st.write(
-        f"🟡 **Value Bet:** Over 2.5 Goals ({over25:.1f}%)"
-        if over25 > 50
-        else f"🟡 **Value Bet:** Under 2.5 Goals ({100-over25:.1f}%)"
+        f"🟡 **Value Bet:** Over 2.5 Goals ({o25:.1f}%)"
+        if o25 > 50
+        else f"🟡 **Value Bet:** Under 2.5 Goals ({u25:.1f}%)"
     )
     st.write(f"🔥 **Correct Score Pick:** {best_score}")
     st.write(f"⚡ **BTTS (GG):** {btts_yes:.1f}%")
